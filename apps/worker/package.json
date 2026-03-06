@@ -1,0 +1,25 @@
+{
+  "name": "@pr-sentinel/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --import tsx src/index.ts",
+    "dev": "node --import tsx --watch src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pr-sentinel/ai-analyzer": "workspace:*",
+    "@pr-sentinel/database": "workspace:*",
+    "@pr-sentinel/env": "workspace:*",
+    "@pr-sentinel/github": "workspace:*",
+    "@pr-sentinel/queue": "workspace:*",
+    "bullmq": "^5.34.0",
+    "drizzle-orm": "^0.38.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
