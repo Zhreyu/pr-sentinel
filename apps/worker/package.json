@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node --import tsx src/index.ts",
-    "dev": "node --import tsx --watch src/index.ts",
+    "start": "node --env-file=../../.env --import tsx src/index.ts",
+    "dev": "node --env-file=../../.env --import tsx --watch src/index.ts",
+    "queue-pending": "node --env-file=../../.env --import tsx src/queue-pending-analysis.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

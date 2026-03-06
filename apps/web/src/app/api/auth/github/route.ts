@@ -1,6 +1,6 @@
 import { getAuthorizationUrl } from "@pr-sentinel/github";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { NextResponse } from "next/server";
 
 export async function GET() {
   // Generate a random state for CSRF protection
@@ -17,5 +17,6 @@ export async function GET() {
   });
 
   const authUrl = getAuthorizationUrl(state);
-  redirect(authUrl);
+  // Use NextResponse.redirect for external URLs
+  return NextResponse.redirect(authUrl);
 }

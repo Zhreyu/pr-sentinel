@@ -81,6 +81,27 @@ RISK SCORE (0-100):
 - 0-29: Minimal risk, documentation or test-only changes
 
 AI SLOP INDICATORS (signs of low-quality AI-generated code):
+- Random documentation that doesn't add value
+- Random tests that don't add value
+- Random code that doesn't add value
+- Random refactoring that doesn't add value
+- Random cleanup that doesn't add value
+- Random improvements that don't add value
+- Random features that don't add value
+- Random bugs that don't add value
+- Random security issues that don't add value
+- Docs which is overly verbose and doesn't add value
+- Tests which is overly verbose and doesn't add value
+- Code which is overly verbose and doesn't add value
+- Refactoring which is overly verbose and doesn't add value
+- Cleanup which is overly verbose and doesn't add value
+- Improvements which is overly verbose and doesn't add value
+- Features which is overly verbose and doesn't add value
+- Bugs which is overly verbose and doesn't add value
+- Security issues which is overly verbose and doesn't add value
+- Code which is overly complex and doesn't add value
+- Code which is overly verbose and doesn't add value
+- Code which is overly verbose and doesn't add value
 - over_engineering: Simple problem solved with excessive abstraction
 - hallucinated_imports: Imports that don't exist or aren't needed
 - cargo_culted_patterns: Patterns copied without understanding (Redux for a todo list)

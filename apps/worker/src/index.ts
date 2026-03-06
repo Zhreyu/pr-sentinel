@@ -1,4 +1,4 @@
-import { createPRAnalysisWorker, createDiffFetchWorker } from "@pr-sentinel/queue";
+import { createPRAnalysisWorker, createDiffFetchWorker, enqueuePRAnalysis } from "@pr-sentinel/queue";
 import { getPullRequestDiff, getPullRequestFiles } from "@pr-sentinel/github";
 import { runAnalysisPipeline, compressDiff, type PRContext } from "@pr-sentinel/ai-analyzer";
 import { db } from "@pr-sentinel/database";
@@ -81,6 +81,15 @@ const diffFetchWorker = createDiffFetchWorker(async (job: Job<DiffFetchJob>) => 
     }
 
     console.log(`[DiffFetch] Stored diff for PR ${owner}/${repo}#${prNumber} (${originalSize} bytes)`);
+
+    // Queue AI analysis job
+    await enqueuePRAnalysis({
+      pullRequestId,
+      repositoryId: pr.repositoryId,
+      headSha: pr.headSha,
+      priority: "normal",
+    });
+    console.log(`[DiffFetch] Queued analysis for PR ${owner}/${repo}#${prNumber}`);
   } catch (error) {
     console.error(`[DiffFetch] Error processing PR ${pullRequestId}:`, error);
     throw error;

@@ -104,6 +104,10 @@ export async function GET(request: NextRequest) {
 
     redirect("/dashboard");
   } catch (err) {
+    // Re-throw redirect errors (they're not real errors)
+    if (err instanceof Error && "digest" in err && typeof err.digest === "string" && err.digest.startsWith("NEXT_REDIRECT")) {
+      throw err;
+    }
     console.error("OAuth callback error:", err);
     redirect("/?error=auth_failed");
   }

@@ -4,7 +4,7 @@ import {
   repositories,
   prAnalyses,
 } from "@pr-sentinel/database/schema";
-import { eq, desc, and, sql, gte, lt, or, ilike } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 import { getSession } from "@/lib/session";
 import Link from "next/link";
 
@@ -132,91 +132,105 @@ export default async function DashboardPage({
 
   return (
     <div className="space-y-6">
-      {/* Stats cards */}
-      <div className="grid gap-4 sm:grid-cols-4">
+      {/* Stats */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Open PRs" value={totalOpen} />
-        <StatCard title="Analyzed" value={analyzed} color="blue" />
-        <StatCard title="High Value" value={highValue} color="green" />
-        <StatCard title="AI Slop" value={hasSlop} color="red" />
+        <StatCard title="Analyzed" value={analyzed} />
+        <StatCard title="High Value" value={highValue} />
+        <StatCard title="AI Slop" value={hasSlop} />
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-4 rounded-lg border border-gray-200 bg-white p-4">
-        <div>
-          <label className="mb-1 block text-xs font-medium text-gray-500">Filter</label>
-          <div className="flex gap-1">
-            <FilterButton href={buildUrl(params, { filter: "all" })} active={filter === "all"}>
-              All
-            </FilterButton>
-            <FilterButton href={buildUrl(params, { filter: "high-value" })} active={filter === "high-value"}>
-              High Value
-            </FilterButton>
-            <FilterButton href={buildUrl(params, { filter: "medium" })} active={filter === "medium"}>
-              Medium
-            </FilterButton>
-            <FilterButton href={buildUrl(params, { filter: "low-signal" })} active={filter === "low-signal"}>
-              Low Signal
-            </FilterButton>
-            <FilterButton href={buildUrl(params, { filter: "slop" })} active={filter === "slop"}>
-              AI Slop
-            </FilterButton>
-            <FilterButton href={buildUrl(params, { filter: "pending" })} active={filter === "pending"}>
-              Pending
-            </FilterButton>
+      <div className="border-b border-zinc-200 pb-6">
+        <div className="flex flex-wrap items-end gap-6">
+          <div>
+            <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-zinc-400">
+              Filter
+            </label>
+            <div className="flex flex-wrap gap-1">
+              <FilterButton href={buildUrl(params, { filter: "all" })} active={filter === "all"}>
+                All
+              </FilterButton>
+              <FilterButton href={buildUrl(params, { filter: "high-value" })} active={filter === "high-value"}>
+                High Value
+              </FilterButton>
+              <FilterButton href={buildUrl(params, { filter: "medium" })} active={filter === "medium"}>
+                Medium
+              </FilterButton>
+              <FilterButton href={buildUrl(params, { filter: "low-signal" })} active={filter === "low-signal"}>
+                Low Signal
+              </FilterButton>
+              <FilterButton href={buildUrl(params, { filter: "slop" })} active={filter === "slop"}>
+                AI Slop
+              </FilterButton>
+              <FilterButton href={buildUrl(params, { filter: "pending" })} active={filter === "pending"}>
+                Pending
+              </FilterButton>
+            </div>
           </div>
-        </div>
 
-        <div>
-          <label className="mb-1 block text-xs font-medium text-gray-500">Sort</label>
-          <div className="flex gap-1">
-            <FilterButton href={buildUrl(params, { sort: "priority" })} active={sort === "priority"}>
-              Priority
-            </FilterButton>
-            <FilterButton href={buildUrl(params, { sort: "updated" })} active={sort === "updated"}>
-              Updated
-            </FilterButton>
-            <FilterButton href={buildUrl(params, { sort: "created" })} active={sort === "created"}>
-              Created
-            </FilterButton>
+          <div>
+            <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-zinc-400">
+              Sort by
+            </label>
+            <div className="flex gap-1">
+              <FilterButton href={buildUrl(params, { sort: "priority" })} active={sort === "priority"}>
+                Priority
+              </FilterButton>
+              <FilterButton href={buildUrl(params, { sort: "updated" })} active={sort === "updated"}>
+                Updated
+              </FilterButton>
+              <FilterButton href={buildUrl(params, { sort: "created" })} active={sort === "created"}>
+                Created
+              </FilterButton>
+            </div>
           </div>
-        </div>
 
-        <div className="flex-1">
-          <label className="mb-1 block text-xs font-medium text-gray-500">Search</label>
-          <form action="/dashboard" method="GET">
-            <input type="hidden" name="filter" value={filter} />
-            <input type="hidden" name="sort" value={sort} />
-            <input
-              type="text"
-              name="search"
-              placeholder="Search by title, author, or repo..."
-              defaultValue={search}
-              className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
-            />
-          </form>
+          <div className="flex-1 min-w-[200px]">
+            <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-zinc-400">
+              Search
+            </label>
+            <form action="/dashboard" method="GET">
+              <input type="hidden" name="filter" value={filter} />
+              <input type="hidden" name="sort" value={sort} />
+              <div className="relative">
+                <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                <input
+                  type="text"
+                  name="search"
+                  placeholder="Search title, author, or repo..."
+                  defaultValue={search}
+                  className="w-full rounded-md border border-zinc-200 bg-white py-2 pl-10 pr-4 text-sm placeholder-zinc-400 transition-colors focus:border-zinc-400 focus:outline-none"
+                />
+              </div>
+            </form>
+          </div>
         </div>
       </div>
 
       {/* PR List */}
-      <div className="rounded-lg border border-gray-200 bg-white">
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-          <h2 className="text-lg font-semibold">
+      <div>
+        <div className="flex items-center justify-between pb-4">
+          <h2 className="text-sm font-medium text-zinc-900">
             Pull Requests
-            <span className="ml-2 text-sm font-normal text-gray-500">
-              ({filteredPRs.length} shown)
+            <span className="ml-2 text-zinc-400">
+              {filteredPRs.length}
             </span>
           </h2>
         </div>
 
         {filteredPRs.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
-            <p className="mb-2">No pull requests match your filters.</p>
-            <Link href="/dashboard" className="text-sm text-blue-600 hover:underline">
+          <div className="py-12 text-center">
+            <p className="text-sm text-zinc-500">No pull requests found</p>
+            <Link
+              href="/dashboard"
+              className="mt-2 inline-block text-sm text-zinc-900 underline hover:no-underline"
+            >
               Clear filters
             </Link>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-zinc-100">
             {filteredPRs.map(({ pr, repo, analysis }) => (
               <PRRow
                 key={pr.id}
@@ -247,25 +261,14 @@ function buildUrl(current: SearchParams, update: Partial<SearchParams>): string 
 function StatCard({
   title,
   value,
-  color = "gray",
 }: {
   title: string;
   value: number;
-  color?: "gray" | "blue" | "green" | "red";
 }) {
-  const colors = {
-    gray: "bg-gray-100 text-gray-900",
-    blue: "bg-blue-100 text-blue-800",
-    green: "bg-green-100 text-green-800",
-    red: "bg-red-100 text-red-800",
-  };
-
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
-      <p className="text-sm font-medium text-gray-600">{title}</p>
-      <p className={`mt-1 inline-block rounded-full px-3 py-1 text-2xl font-bold ${colors[color]}`}>
-        {value}
-      </p>
+    <div className="border-b border-zinc-200 pb-4">
+      <p className="text-sm font-medium text-zinc-500">{title}</p>
+      <p className="mt-1 text-3xl font-semibold text-zinc-900">{value}</p>
     </div>
   );
 }
@@ -280,16 +283,16 @@ function FilterButton({
   children: React.ReactNode;
 }) {
   return (
-    <Link
+    <a
       href={href}
-      className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+      className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
         active
-          ? "bg-gray-900 text-white"
-          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          ? "bg-zinc-900 text-white"
+          : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
       }`}
     >
       {children}
-    </Link>
+    </a>
   );
 }
 
@@ -309,64 +312,52 @@ function PRRow({
     Array.isArray(analysis.aiSlopIndicators) &&
     analysis.aiSlopIndicators.length > 0;
 
-  const priorityScore = analysis ? analysis.valueScore - analysis.riskScore : null;
-
   return (
     <Link
       href={`/dashboard/pr/${pr.id}`}
-      className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-gray-50"
+      className="group flex items-center justify-between py-4 transition-colors hover:bg-zinc-50"
     >
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">{repoName}</span>
-          <span className="text-gray-300">•</span>
-          <span className="text-sm text-gray-500">#{pr.githubPrNumber}</span>
+        <div className="flex items-center gap-2 text-sm text-zinc-400">
+          <span>{repoName}</span>
+          <span>/</span>
+          <span className="font-mono">#{pr.githubPrNumber}</span>
           {pr.draft && (
-            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+            <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-500">
               Draft
             </span>
           )}
           {hasSlop && (
-            <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
+            <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-500">
               AI Slop
             </span>
           )}
         </div>
-        <h3 className="mt-1 truncate font-medium text-gray-900">{pr.title}</h3>
-        <div className="mt-1 flex items-center gap-3 text-sm text-gray-500">
-          <span>{pr.authorLogin}</span>
-          <span className="text-green-600">+{pr.additions}</span>
-          <span className="text-red-600">-{pr.deletions}</span>
+        <h3 className="mt-1 truncate text-sm font-medium text-zinc-900">
+          {pr.title}
+        </h3>
+        <div className="mt-1.5 flex items-center gap-4 text-sm text-zinc-400">
+          <span className="flex items-center gap-1.5">
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-zinc-200 text-[10px] font-medium text-zinc-600">
+              {pr.authorLogin.charAt(0).toUpperCase()}
+            </span>
+            {pr.authorLogin}
+          </span>
+          <span className="font-mono text-xs">
+            +{pr.additions} / -{pr.deletions}
+          </span>
           <span>{pr.changedFiles} files</span>
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 ml-4 text-sm">
         {analysis ? (
           <>
-            {priorityScore !== null && (
-              <div className="text-center">
-                <p className="text-xs text-gray-500">Priority</p>
-                <span
-                  className={`mt-1 inline-block rounded-full px-2 py-0.5 text-sm font-semibold ${
-                    priorityScore >= 50
-                      ? "bg-green-100 text-green-800"
-                      : priorityScore >= 20
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {priorityScore}
-                </span>
-              </div>
-            )}
-            <ScoreBadge label="Value" score={valueScore ?? 0} type="value" />
-            <ScoreBadge label="Risk" score={riskScore ?? 0} type="risk" />
+            <ScoreBadge label="Value" score={valueScore ?? 0} />
+            <ScoreBadge label="Risk" score={riskScore ?? 0} />
           </>
         ) : (
-          <span className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-500">
-            Pending
-          </span>
+          <span className="text-zinc-400">Pending</span>
         )}
       </div>
     </Link>
@@ -376,30 +367,23 @@ function PRRow({
 function ScoreBadge({
   label,
   score,
-  type,
 }: {
   label: string;
   score: number;
-  type: "value" | "risk";
 }) {
-  const getColor = () => {
-    if (type === "value") {
-      if (score >= 70) return "bg-green-100 text-green-800";
-      if (score >= 40) return "bg-yellow-100 text-yellow-800";
-      return "bg-gray-100 text-gray-800";
-    }
-    // risk
-    if (score >= 70) return "bg-red-100 text-red-800";
-    if (score >= 40) return "bg-yellow-100 text-yellow-800";
-    return "bg-green-100 text-green-800";
-  };
-
   return (
-    <div className="text-center">
-      <p className="text-xs text-gray-500">{label}</p>
-      <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-sm font-semibold ${getColor()}`}>
-        {score}
-      </span>
+    <div className="text-right">
+      <p className="text-[10px] uppercase tracking-wider text-zinc-400">{label}</p>
+      <p className="mt-0.5 font-medium text-zinc-900">{score}</p>
     </div>
+  );
+}
+
+// Icons
+function SearchIcon({ className = "h-5 w-5" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+    </svg>
   );
 }
