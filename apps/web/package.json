@@ -1,0 +1,39 @@
+{
+  "name": "@pr-sentinel/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pr-sentinel/database": "workspace:*",
+    "@pr-sentinel/env": "workspace:*",
+    "@pr-sentinel/github": "workspace:^",
+    "@pr-sentinel/queue": "workspace:^",
+    "@tanstack/react-query": "^5.62.0",
+    "@trpc/client": "^11.0.0-rc.682",
+    "@trpc/react-query": "^11.0.0-rc.682",
+    "@trpc/server": "^11.0.0-rc.682",
+    "drizzle-orm": "^0.38.0",
+    "jose": "^5.9.0",
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "superjson": "^2.2.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@tailwindcss/postcss": "^4.2.1",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.0"
+  }
+}

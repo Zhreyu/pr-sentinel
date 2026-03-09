@@ -1,0 +1,45 @@
+{
+  "name": "pr-sentinel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-powered PR triage platform for open source maintainers",
+  "scripts": {
+    "bootstrap": "node ./scripts/bootstrap.mjs",
+    "start": "pnpm stack:up",
+    "stop": "pnpm stack:down",
+    "restart": "pnpm stack:restart",
+    "logs": "pnpm stack:logs",
+    "status": "pnpm stack:status",
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "db:generate": "turbo run db:generate",
+    "db:migrate": "turbo run db:migrate",
+    "stack:up": "docker compose -f docker/docker-compose.prod.yml up -d --build",
+    "stack:down": "docker compose -f docker/docker-compose.prod.yml down",
+    "stack:restart": "docker compose -f docker/docker-compose.prod.yml up -d --build --force-recreate",
+    "stack:logs": "docker compose -f docker/docker-compose.prod.yml logs -f",
+    "stack:status": "docker compose -f docker/docker-compose.prod.yml ps",
+    "docker:dev": "docker-compose -f docker/docker-compose.yml up -d",
+    "docker:dev:down": "docker-compose -f docker/docker-compose.yml down",
+    "docker:prod": "docker-compose -f docker/docker-compose.prod.yml up -d --build",
+    "docker:prod:down": "docker-compose -f docker/docker-compose.prod.yml down"
+  },
+  "keywords": [
+    "github",
+    "pr",
+    "ai",
+    "code-review",
+    "open-source"
+  ],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "turbo": "^2.8.13"
+  }
+}
