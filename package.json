@@ -5,6 +5,7 @@
   "description": "AI-powered PR triage platform for open source maintainers",
   "scripts": {
     "dev": "turbo run dev",
+    "bootstrap": "node scripts/bootstrap.mjs",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",

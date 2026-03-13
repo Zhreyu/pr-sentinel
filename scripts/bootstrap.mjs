@@ -27,6 +27,12 @@ async function main() {
 
     const existingEnv = readEnvFile(ENV_PATH);
     const config = await collectBootstrapConfig(existingEnv);
+    const postgresConfig = getPostgresConfig(config.databaseUrl);
+    const composeEnv = {
+      POSTGRES_USER: postgresConfig.user,
+      POSTGRES_PASSWORD: postgresConfig.password,
+      POSTGRES_DB: postgresConfig.database,
+    };
 
     writeEnvFile(ENV_PATH, existingEnv, {
       DATABASE_URL: config.databaseUrl,
@@ -43,7 +49,8 @@ async function main() {
     await runCommand(
       "docker",
       ["compose", "-f", COMPOSE_FILE, "up", "-d", "db", "redis"],
-      ROOT_DIR
+      ROOT_DIR,
+      composeEnv
     );
 
     logStep("Running database migrations");
@@ -52,7 +59,8 @@ async function main() {
       ["--filter", "@pr-sentinel/database", "db:migrate"],
       ROOT_DIR,
       10,
-      3000
+      3000,
+      { ...composeEnv, DATABASE_URL: config.databaseUrl }
     );
 
     const manifestServer = await startManifestSetupServer(config.appUrl);
@@ -94,7 +102,8 @@ async function main() {
         "web",
         "worker",
       ],
-      ROOT_DIR
+      ROOT_DIR,
+      composeEnv
     );
     await waitForHttp("http://127.0.0.1:3000/", 20, 3000);
 
@@ -126,9 +135,10 @@ async function collectBootstrapConfig(existingEnv) {
     existingEnv.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
   );
 
-  const databaseUrl =
+  const databaseUrl = normalizeLocalDatabaseUrl(
     existingEnv.DATABASE_URL ||
-    "postgresql://postgres:postgres@localhost:5432/pr_sentinel";
+      "postgresql://postgres:postgres_pass@localhost:5433/pr_sentinel"
+  );
   const redisUrl = existingEnv.REDIS_URL || "redis://localhost:6379";
 
   const providerInput = await askWithDefault(
@@ -286,7 +296,7 @@ function assertCommandAvailable(command) {
 }
 
 function assertBrowserCommandAvailable() {
-  if (process.platform === "win32") {
+  if (process.platform === "win32" || process.platform === "darwin") {
     return;
   }
 
@@ -301,12 +311,12 @@ function assertBrowserCommandAvailable() {
   }
 }
 
-function runCommand(command, args, cwd) {
+function runCommand(command, args, cwd, extraEnv = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd,
       stdio: "inherit",
-      env: process.env,
+      env: { ...process.env, ...extraEnv },
     });
 
     child.on("error", reject);
@@ -320,12 +330,12 @@ function runCommand(command, args, cwd) {
   });
 }
 
-async function runCommandWithRetry(command, args, cwd, attempts, delayMs) {
+async function runCommandWithRetry(command, args, cwd, attempts, delayMs, extraEnv = {}) {
   let lastError = null;
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
-      await runCommand(command, args, cwd);
+      await runCommand(command, args, cwd, extraEnv);
       return;
     } catch (error) {
       lastError = error;
@@ -361,9 +371,13 @@ function startManifestSetupServer(appUrl) {
     <h2>PR Sentinel setup</h2>
     <p>Redirecting to GitHub to create the PR Sentinel App...</p>
     <form id="manifest-form" method="POST" action="https://github.com/settings/apps/new">
-      <input type="hidden" name="manifest" value=${JSON.stringify(manifestJson)} />
+      <input id="manifest-input" type="hidden" name="manifest" />
     </form>
-    <script>document.getElementById('manifest-form').submit();</script>
+    <script>
+      const manifest = ${manifestJson};
+      document.getElementById('manifest-input').value = JSON.stringify(manifest);
+      document.getElementById('manifest-form').submit();
+    </script>
   </body>
 </html>`);
       return;
@@ -437,7 +451,9 @@ function buildGitHubManifest(appUrl, redirectUrl) {
       metadata: "read",
       members: "read",
     },
-    default_events: ["pull_request", "installation", "installation_repositories"],
+    // installation and installation_repositories are delivered automatically
+    // and cannot be manually subscribed in app manifest default_events.
+    default_events: ["pull_request"],
   };
 }
 
@@ -478,6 +494,50 @@ function getBrowserCommand() {
 
 function trimTrailingSlash(value) {
   return value.endsWith("/") ? value.slice(0, -1) : value;
+}
+
+function getPostgresConfig(databaseUrl) {
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(databaseUrl);
+  } catch {
+    throw new Error("DATABASE_URL must be a valid URL.");
+  }
+
+  if (parsedUrl.protocol !== "postgresql:" && parsedUrl.protocol !== "postgres:") {
+    throw new Error("DATABASE_URL must use the postgres or postgresql protocol.");
+  }
+
+  const user = decodeURIComponent(parsedUrl.username || "postgres");
+  const password = decodeURIComponent(parsedUrl.password || "");
+  const database = (parsedUrl.pathname || "").replace(/^\//, "") || "pr_sentinel";
+
+  if (!password) {
+    throw new Error("DATABASE_URL must include a password for PostgreSQL.");
+  }
+
+  return { user, password, database };
+}
+
+function normalizeLocalDatabaseUrl(databaseUrl) {
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(databaseUrl);
+  } catch {
+    return databaseUrl;
+  }
+
+  const isLocalHost =
+    parsedUrl.hostname === "localhost" || parsedUrl.hostname === "127.0.0.1";
+  if (!isLocalHost) {
+    return databaseUrl;
+  }
+
+  if (!parsedUrl.port || parsedUrl.port === "5432") {
+    parsedUrl.port = "5433";
+  }
+
+  return parsedUrl.toString();
 }
 
 function logStep(message) {
